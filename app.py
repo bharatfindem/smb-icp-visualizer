@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 import matplotlib.pyplot as plt
 
 # === CONFIG ===
@@ -63,7 +62,7 @@ selected_cities = st.sidebar.multiselect("Filter by City", unique_cities)
 # === Filtering Logic ===
 filtered_df = df.copy()
 
-if selected_roles and "cleaned_roles" in filtered_df.columns:
+if selected_roles:
     filtered_df = filtered_df[filtered_df["cleaned_roles"].apply(
         lambda x: isinstance(x, str) and any(role in x for role in selected_roles)
     )]
@@ -89,12 +88,15 @@ if "PC URL" in filtered_df.columns:
 
 # === Sorting ===
 st.sidebar.header("🔢 Sort")
-sort_column = st.sidebar.selectbox("Sort by column", options=filtered_df.columns, index=list(filtered_df.columns).index("pool_size") if "pool_size" in filtered_df.columns else 0)
+sort_column = st.sidebar.selectbox(
+    "Sort by column",
+    options=filtered_df.columns,
+    index=list(filtered_df.columns).index("pool_size") if "pool_size" in filtered_df.columns else 0
+)
 sort_ascending = st.sidebar.radio("Sort order", ["Ascending", "Descending"]) == "Ascending"
-
 filtered_df = filtered_df.sort_values(by=sort_column, ascending=sort_ascending)
 
-# === Display ===
+# === Display Filtered Data ===
 st.subheader("📈 Filtered Data")
 st.dataframe(filtered_df, use_container_width=True)
 
@@ -136,23 +138,31 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.markdown("#### 🏙️ Top Cities")
-    st.dataframe(
-        filtered_df["city"]
-        .value_counts()
-        .rename_axis("City")
-        .reset_index(name="Count")
-        .head(10)
-    )
+    if "city" in filtered_df.columns and not filtered_df["city"].dropna().empty:
+        top_cities = (
+            filtered_df["city"]
+            .value_counts()
+            .rename_axis("City")
+            .reset_index(name="Count")
+            .head(10)
+        )
+        st.dataframe(top_cities)
+    else:
+        st.warning("No city data available after filtering.")
 
 with col2:
     st.markdown("#### 🗽 Top States")
-    st.dataframe(
-        filtered_df["state"]
-        .value_counts()
-        .rename_axis("State")
-        .reset_index(name="Count")
-        .head(10)
-    )
+    if "state" in filtered_df.columns and not filtered_df["state"].dropna().empty:
+        top_states = (
+            filtered_df["state"]
+            .value_counts()
+            .rename_axis("State")
+            .reset_index(name="Count")
+            .head(10)
+        )
+        st.dataframe(top_states)
+    else:
+        st.warning("No state data available after filtering.")
 
 # === Download Button ===
 st.markdown("### 📥 Download Filtered Data")
