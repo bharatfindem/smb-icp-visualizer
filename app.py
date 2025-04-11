@@ -51,10 +51,14 @@ unique_industries = sorted(set(
 )) if "gpt_industry" in df.columns else []
 
 unique_locations = sorted(df["location_clean"].dropna().astype(str).unique()) if "location_clean" in df.columns else []
+unique_states = sorted(df["state"].dropna().astype(str).unique()) if "state" in df.columns else []
+unique_cities = sorted(df["city"].dropna().astype(str).unique()) if "city" in df.columns else []
 
 selected_roles = st.sidebar.multiselect("Filter by Role", unique_roles)
 selected_industries = st.sidebar.multiselect("Filter by GPT Industry", unique_industries)
 selected_locations = st.sidebar.multiselect("Filter by Location", unique_locations)
+selected_states = st.sidebar.multiselect("Filter by State", unique_states)
+selected_cities = st.sidebar.multiselect("Filter by City", unique_cities)
 
 # === Filtering Logic ===
 filtered_df = df.copy()
@@ -67,12 +71,14 @@ if selected_industries:
     filtered_df = filtered_df[filtered_df["gpt_industry"].isin(selected_industries)]
 if selected_locations:
     filtered_df = filtered_df[filtered_df["location_clean"].isin(selected_locations)]
+if selected_states:
+    filtered_df = filtered_df[filtered_df["state"].isin(selected_states)]
+if selected_cities:
+    filtered_df = filtered_df[filtered_df["city"].isin(selected_cities)]
 
 # === Drop columns ===
-columns_to_drop = ["industries_clean"]
-for col in columns_to_drop:
-    if col in filtered_df.columns:
-        filtered_df.drop(columns=[col], inplace=True)
+if "industries_clean" in filtered_df.columns:
+    filtered_df.drop(columns=["industries_clean"], inplace=True)
 
 # === Format PC Link Column ===
 if "PC URL" in filtered_df.columns:
@@ -123,6 +129,30 @@ if "primary_role" in df.columns and "location_clean" in df.columns:
     if not chart_data.empty:
         top_roles = chart_data.sort_values("Count", ascending=False).head(20)
         st.bar_chart(top_roles.set_index("primary_role")["Count"])
+
+# === Top Cities and States ===
+st.markdown("### 🗺️ Top Cities and States by Record Count")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown("#### 🏙️ Top Cities")
+    st.dataframe(
+        filtered_df["city"]
+        .value_counts()
+        .rename_axis("City")
+        .reset_index(name="Count")
+        .head(10)
+    )
+
+with col2:
+    st.markdown("#### 🗽 Top States")
+    st.dataframe(
+        filtered_df["state"]
+        .value_counts()
+        .rename_axis("State")
+        .reset_index(name="Count")
+        .head(10)
+    )
 
 # === Download Button ===
 st.markdown("### 📥 Download Filtered Data")
