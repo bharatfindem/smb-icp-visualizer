@@ -133,36 +133,46 @@ if "primary_role" in df.columns and "location_clean" in df.columns:
         st.bar_chart(top_roles.set_index("primary_role")["Count"])
 
 # === Top Cities and States ===
+# === Top Cities and States ===
 st.markdown("### 🗺️ Top Cities and States by Record Count")
 col1, col2 = st.columns(2)
 
 with col1:
     st.markdown("#### 🏙️ Top Cities")
-    if "city" in filtered_df.columns and not filtered_df["city"].dropna().empty:
-        top_cities = (
-            filtered_df["city"]
-            .value_counts()
-            .rename_axis("City")
-            .reset_index(name="Count")
-            .head(10)
-        )
-        st.dataframe(top_cities)
+    if "city" in filtered_df.columns:
+        non_null_cities = filtered_df["city"].dropna()
+        if not non_null_cities.empty:
+            top_cities = (
+                non_null_cities
+                .value_counts()
+                .rename_axis("City")
+                .reset_index(name="Count")
+                .head(10)
+            )
+            st.dataframe(top_cities)
+        else:
+            st.warning("ℹ️ No non-null city data available for this filtered view.")
     else:
-        st.warning("No city data available after filtering.")
+        st.warning("⚠️ 'City' column not found.")
 
 with col2:
     st.markdown("#### 🗽 Top States")
-    if "state" in filtered_df.columns and not filtered_df["state"].dropna().empty:
-        top_states = (
-            filtered_df["state"]
-            .value_counts()
-            .rename_axis("State")
-            .reset_index(name="Count")
-            .head(10)
-        )
-        st.dataframe(top_states)
+    if "state" in filtered_df.columns:
+        non_null_states = filtered_df["state"].dropna()
+        if not non_null_states.empty:
+            top_states = (
+                non_null_states
+                .value_counts()
+                .rename_axis("State")
+                .reset_index(name="Count")
+                .head(10)
+            )
+            st.dataframe(top_states)
+        else:
+            st.warning("ℹ️ No non-null state data available for this filtered view.")
     else:
-        st.warning("No state data available after filtering.")
+        st.warning("⚠️ 'State' column not found.")
+
 
 # === Download Button ===
 st.markdown("### 📥 Download Filtered Data")
